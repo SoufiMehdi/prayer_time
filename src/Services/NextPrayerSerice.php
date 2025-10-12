@@ -7,15 +7,14 @@ use DateTimeZone;
 
 class NextPrayerSerice
 {
-    public function getNextPrayer(array $timings) : array
+    public function getNextPrayer(array $timings, ?DateTime $currentDateTime = null) : array
     {
-        $now = new DateTime('now',new DateTimeZone('Europe/Paris'));
+        $now = $currentDateTime ?? new DateTime('now',new DateTimeZone('Europe/Paris'));
         $currentTime = $now->format('H:i');
         foreach ($timings as $prayerName => $prayerTime ) {
             if ($prayerName === 'Sunrise') {
                 continue;
             }
-            dump($currentTime, $prayerTime);
             if ($prayerTime > $currentTime) {
                 $prayerDateTime = \DateTime::createFromFormat('H:i', $prayerTime);
                 $interval = $now->diff($prayerDateTime);
