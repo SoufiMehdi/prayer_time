@@ -68,6 +68,9 @@
         }
     },
     "require-dev": {
-        "symfony/maker-bundle": "^1.64"
+        "phpunit/phpunit": "^12.4",
+        "symfony/http-client-contracts": "^3.6",
+        "symfony/maker-bundle": "^1.64",
+        "symfony/phpunit-bridge": "^7.3"
     }
 }
