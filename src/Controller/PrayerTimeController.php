@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Services\PrayerTimeService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -11,20 +12,12 @@ use Symfony\Component\Routing\Attribute\Route;
 final class PrayerTimeController extends AbstractController
 {
     #[Route('/api/prayer/time', name: 'app_prayer_time')]
-    public function getPrayerTimes(Request $request): JsonResponse
+    public function getPrayerTimes(Request $request, PrayerTimeService $prayerTimeService): JsonResponse
     {
        $city = $request->get("city", "Paris");
        $country = $request->get("country", "France");
-       $client = HttpClient::create();
-       $response = $client->request('GET', 'https://api.aladhan.com/v1/timingsByCity',[
-           "query" => [
-               "city" => $city,
-               "country" => $country,
-               "method" => 2
-           ]
-           ]);
-       $data = $response->toArray();
-       $timings = $data["data"]["timings"];
+       $methode = 2;
+       $timings = $prayerTimeService->getPrayerTime($city, $country, $methode);
         return $this->json([
             'city' => $city,
             'country' => $country,
