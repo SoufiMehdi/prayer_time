@@ -168,11 +168,11 @@ class NextPrayerServiceTest extends TestCase
 
     /**
      * Test avec une heure mockée (nécessite une refactorisation du service)
-     * Ce test montre comment on pourrait tester avec une heure fixe
+     * Ce prayer_time montre comment on pourrait tester avec une heure fixe
      */
     public function testGetNextPrayerWithMockedTime(): void
     {
-        // Ce test nécessiterait d'injecter l'heure actuelle dans le service
+        // Ce prayer_time nécessiterait d'injecter l'heure actuelle dans le service
         // ou d'utiliser une bibliothèque comme Carbon
 
         $timings = [
