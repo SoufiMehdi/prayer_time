@@ -1,0 +1,17 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Horaires de Prière{% endblock %}
+
+{% block body %}
+    <div id="prayer-app"></div>
+{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    {{ encore_entry_link_tags('app') }}
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    {{ encore_entry_script_tags('app') }}
+{% endblock %}
