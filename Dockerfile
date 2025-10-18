@@ -62,8 +62,10 @@ COPY --from=node_builder /app/public/build ./public/build
 # Générer l'autoloader optimisé et exécuter les scripts
 RUN composer dump-autoload --optimize --no-dev
 
-# Configurer les permissions
-RUN chown -R www-data:www-data /var/www/html/var /var/www/html/public
+# Créer les répertoires nécessaires et configurer les permissions
+RUN mkdir -p /var/www/html/var/cache /var/www/html/var/log /var/www/html/public && \
+    chown -R www-data:www-data /var/www/html/var /var/www/html/public && \
+    chmod -R 775 /var/www/html/var
 
 # Configuration Nginx
 COPY <<EOF /etc/nginx/http.d/default.conf
