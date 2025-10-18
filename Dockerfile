@@ -27,28 +27,40 @@ RUN apk add --no-cache \
     libzip-dev \
     icu-dev \
     nginx \
-    supervisor
+    supervisor \
+    oniguruma-dev
 
 # Installer les extensions PHP nécessaires
 RUN docker-php-ext-install \
     intl \
     zip \
-    opcache
+    opcache \
+    mbstring
 
 # Installer Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
+# Augmenter la limite mémoire PHP pour Composer
+ENV COMPOSER_MEMORY_LIMIT=-1
+
 # Créer le répertoire de travail
 WORKDIR /var/www/html
 
-# Copier les fichiers de l'application
+# Copier d'abord composer.json et composer.lock pour utiliser le cache Docker
+COPY composer.json composer.lock* symfony.lock* ./
+
+# Installer les dépendances Symfony (sans scripts et autoload pour l'instant)
+RUN composer install --no-dev --no-scripts --no-autoloader --no-interaction --prefer-dist || \
+    composer install --no-dev --no-scripts --no-autoloader --no-interaction --ignore-platform-reqs --prefer-dist
+
+# Copier le reste des fichiers de l'application
 COPY . .
 
 # Copier les assets buildés depuis l'étape Node
 COPY --from=node_builder /app/public/build ./public/build
 
-# Installer les dépendances Symfony
-RUN composer install --no-dev --optimize-autoloader --no-interaction
+# Générer l'autoloader optimisé et exécuter les scripts
+RUN composer dump-autoload --optimize --no-dev
 
 # Configurer les permissions
 RUN chown -R www-data:www-data /var/www/html/var /var/www/html/public
