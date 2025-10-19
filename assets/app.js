@@ -1,6 +1,6 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-import PrayerApp from './react/controllers/PrayerApp';
+import PrayerApp from './react/Components/PrayerApp';
 import './styles/app.css';
 
 const container = document.getElementById('prayer-app');
