@@ -8,27 +8,38 @@ export const usePrayerData = (initialCity, initialCountry) => {
     const [city, setCity] = useState(initialCity);
     const [country, setCountry] = useState(initialCountry);
 
-    const fetchPrayerTimes = useCallback(async (searchCity = city, searchCountry = country) => {
+    const fetchPrayerTimes = useCallback(async (searchCity, searchCountry) => {
+        const cityToUse = searchCity || city;
+        const countryToUse = searchCountry || country;
+
         setLoading(true);
         setError(null);
 
         try {
-            const response = await fetch(
-                `${API_ENDPOINT}?city=${encodeURIComponent(searchCity)}&country=${encodeURIComponent(searchCountry)}`
-            );
+            const url = `${API_ENDPOINT}?city=${encodeURIComponent(cityToUse)}&country=${encodeURIComponent(countryToUse)}`;
+            console.log('🔄 Fetching prayer times:', url);
+
+            const response = await fetch(url);
 
             if (!response.ok) {
                 throw new Error('Erreur lors de la récupération des données');
             }
 
             const data = await response.json();
+            console.log('✅ Prayer data received:', data);
             setPrayerData(data);
         } catch (err) {
+            console.error('❌ Error fetching prayer times:', err);
             setError(err.message);
         } finally {
             setLoading(false);
         }
-    }, []); // Pas de dépendances pour éviter les re-créations
+    }, [city, country]);
+
+    const refetch = useCallback(() => {
+        console.log('🔄 Refetch triggered');
+        return fetchPrayerTimes(city, country);
+    }, [fetchPrayerTimes, city, country]);
 
     useEffect(() => {
         fetchPrayerTimes(city, country);
@@ -43,6 +54,6 @@ export const usePrayerData = (initialCity, initialCountry) => {
         setCity,
         setCountry,
         fetchPrayerTimes,
-        refetch: () => fetchPrayerTimes(city, country),
+        refetch,
     };
 };

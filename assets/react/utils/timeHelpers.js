@@ -6,15 +6,16 @@ export const calculateTimeRemaining = (prayerTime) => {
 
     let diff = prayer - now;
 
-    // Si la différence est négative, la prière est pour demain
-    if (diff < 0) {
+    // Si la différence est négative de plus de 2 minutes, c'est pour demain
+    // Sinon on garde le négatif pour permettre le rafraîchissement
+    if (diff < -120000) { // -2 minutes en millisecondes
         prayer.setDate(prayer.getDate() + 1);
         diff = prayer - now;
     }
 
-    const hoursLeft = Math.floor(diff / (1000 * 60 * 60));
-    const minutesLeft = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-    const secondsLeft = Math.floor((diff % (1000 * 60)) / 1000);
+    const hoursLeft = Math.max(0, Math.floor(diff / (1000 * 60 * 60)));
+    const minutesLeft = Math.max(0, Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)));
+    const secondsLeft = Math.max(0, Math.floor((diff % (1000 * 60)) / 1000));
 
     return {
         hours: hoursLeft,

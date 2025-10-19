@@ -24,6 +24,7 @@ const PrayerApp = () => {
 
     // Mémoriser la fonction de refetch pour éviter les re-renders
     const handleCountdownComplete = useCallback(() => {
+        console.log('⏰ Countdown complete, refetching data...');
         refetch();
     }, [refetch]);
 
@@ -62,7 +63,7 @@ const PrayerApp = () => {
     const sunriseTime = getSunriseTime(prayerData?.timing?.timings);
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-6">
+        <div className="min-h-screen bg-gradient-to-br from-islamic-green-900 via-islamic-green-800 to-islamic-green-950 p-6">
             <div className="max-w-7xl mx-auto space-y-6">
 
                 {/* Bloc 1: Champs de sélection */}
