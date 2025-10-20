@@ -22,48 +22,43 @@ const NextPrayerCard = ({ nextPrayer, timeRemaining }) => {
     const colorClass = getPrayerColor(nextPrayer.name);
 
     return (
-        <div className={`bg-gradient-to-br ${colorClass} rounded-3xl shadow-2xl p-10 border border-white/20`}>
-            <h2 className="text-2xl font-bold text-white/90 mb-6 flex items-center gap-3">
-                <Clock className="w-7 h-7" />
-                L'heure de la prochaine prière avec le compte à rebours
+        <div className={`bg-gradient-to-br ${colorClass} rounded-3xl shadow-2xl p-6 border border-white/20`}>
+            <h2 className="text-xl font-bold text-white/90 mb-4 flex items-center gap-2">
+                <Clock className="w-6 h-6" />
+                Prochaine prière
             </h2>
-            <div className="flex items-center justify-between flex-wrap gap-8">
-                <div className="flex items-center gap-6">
-                    <Icon className="w-24 h-24 text-white drop-shadow-lg" />
-                    <div>
-                        <p className="text-white/90 text-xl mb-2">Prochaine prière</p>
-                        <h3 className="text-6xl font-bold text-white mb-3">{nextPrayer.name}</h3>
-                        <p className="text-3xl font-semibold text-white/95">{nextPrayer.time}</p>
-                    </div>
+
+            {/* Section prière */}
+            <div className="flex items-center gap-4 mb-6">
+                <Icon className="w-16 h-16 text-white drop-shadow-lg flex-shrink-0" />
+                <div>
+                    <h3 className="text-4xl font-bold text-white mb-1">{nextPrayer.name}</h3>
+                    <p className="text-2xl font-semibold text-white/95">{nextPrayer.time}</p>
                 </div>
-                {timeRemaining && (
-                    <div className="bg-white/20 backdrop-blur-lg rounded-2xl p-8 text-center border border-white/30">
-                        <p className="text-white/90 text-lg mb-3">Temps restant</p>
-                        <div className="flex gap-4">
-                            <div className="text-center">
-                                <div className="text-5xl font-bold text-white">
-                                    {formatTimeUnit(timeRemaining.hours)}
-                                </div>
-                                <div className="text-sm text-white/80 mt-1">heures</div>
-                            </div>
-                            <div className="text-5xl font-bold text-white">:</div>
-                            <div className="text-center">
-                                <div className="text-5xl font-bold text-white">
-                                    {formatTimeUnit(timeRemaining.minutes)}
-                                </div>
-                                <div className="text-sm text-white/80 mt-1">minutes</div>
-                            </div>
-                            <div className="text-5xl font-bold text-white">:</div>
-                            <div className="text-center">
-                                <div className="text-5xl font-bold text-white">
-                                    {formatTimeUnit(timeRemaining.seconds)}
-                                </div>
-                                <div className="text-sm text-white/80 mt-1">secondes</div>
-                            </div>
+            </div>
+
+            {/* Compte à rebours */}
+            {timeRemaining && (
+                <div className="bg-white/20 backdrop-blur-lg rounded-2xl p-6 border border-white/30">
+                    <p className="text-white/90 text-center mb-3">Temps restant</p>
+                    <div className="flex justify-center gap-2">
+                        <div className="text-center">
+                            <div className="text-3xl font-bold text-white">{formatTimeUnit(timeRemaining.hours)}</div>
+                            <div className="text-xs text-white/80 mt-1">heures</div>
+                        </div>
+                        <div className="text-3xl font-bold text-white self-start">:</div>
+                        <div className="text-center">
+                            <div className="text-3xl font-bold text-white">{formatTimeUnit(timeRemaining.minutes)}</div>
+                            <div className="text-xs text-white/80 mt-1">minutes</div>
+                        </div>
+                        <div className="text-3xl font-bold text-white self-start">:</div>
+                        <div className="text-center">
+                            <div className="text-3xl font-bold text-white">{formatTimeUnit(timeRemaining.seconds)}</div>
+                            <div className="text-xs text-white/80 mt-1">secondes</div>
                         </div>
                     </div>
-                )}
-            </div>
+                </div>
+            )}
         </div>
     );
 };
