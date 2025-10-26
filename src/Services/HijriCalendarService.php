@@ -33,6 +33,9 @@ class HijriCalendarService
     {
         $holidays = [];
         foreach ($data['data'] as $day) {
+            if (!key_exists('hijri', $day)) {
+                throw new \RuntimeException('Hijri calendar data is missing');
+            }
             if (!empty($day['hijri']['holidays'])) {
                 $holidays[] = [
                     'gregorian_date' => $day['gregorian']['date'],
