@@ -17,7 +17,7 @@ COPY . .
 RUN npm run build || yarn build
 
 
-# Étape 2 : Image PHP avec Symfony
+# Étape 2 : Image PHP avec Symfony et PostgreSQL
 FROM php:8.2-fpm-alpine
 
 # Installer les dépendances système
@@ -28,14 +28,17 @@ RUN apk add --no-cache \
     icu-dev \
     nginx \
     supervisor \
-    oniguruma-dev
+    oniguruma-dev \
+    postgresql-dev  # <-- nécessaire pour pdo_pgsql
 
-# Installer les extensions PHP nécessaires
+# Installer les extensions PHP nécessaires (ajout de pgsql + pdo_pgsql)
 RUN docker-php-ext-install \
     intl \
     zip \
     opcache \
-    mbstring
+    mbstring \
+    pdo_pgsql \
+    pgsql  # <-- ajout du support PostgreSQL
 
 # Installer Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
@@ -46,23 +49,23 @@ ENV COMPOSER_MEMORY_LIMIT=-1
 # Créer le répertoire de travail
 WORKDIR /var/www/html
 
-# Copier d'abord composer.json et composer.lock pour utiliser le cache Docker
+# Copier les fichiers de configuration de Composer
 COPY composer.json composer.lock* symfony.lock* ./
 
-# Installer les dépendances Symfony (sans scripts et autoload pour l'instant)
+# Installer les dépendances Symfony
 RUN composer install --no-dev --no-scripts --no-autoloader --no-interaction --prefer-dist || \
     composer install --no-dev --no-scripts --no-autoloader --no-interaction --ignore-platform-reqs --prefer-dist
 
-# Copier le reste des fichiers de l'application
+# Copier le reste des fichiers Symfony
 COPY . .
 
-# Copier les assets buildés depuis l'étape Node
+# Copier les assets buildés depuis l’étape Node
 COPY --from=node_builder /app/public/build ./public/build
 
-# Générer l'autoloader optimisé et exécuter les scripts
+# Générer l’autoloader optimisé et exécuter les scripts
 RUN composer dump-autoload --optimize --no-dev
 
-# Créer les répertoires nécessaires et configurer les permissions
+# Créer les répertoires nécessaires et définir les permissions
 RUN mkdir -p /var/www/html/var/cache /var/www/html/var/log /var/www/html/public && \
     chown -R www-data:www-data /var/www/html/var /var/www/html/public && \
     chmod -R 775 /var/www/html/var
