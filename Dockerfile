@@ -15,7 +15,6 @@ COPY . .
 # Build des assets Symfony UX
 RUN npm run build || yarn build
 
-
 # Étape 2 : Image PHP avec Symfony et PostgreSQL
 FROM php:8.2-fpm-alpine
 
@@ -71,15 +70,29 @@ COPY . .
 # Copier les assets buildés depuis l'étape Node
 COPY --from=node_builder /app/public/build ./public/build
 
-# Générer l'autoloader optimisé et exécuter les scripts
-RUN composer dump-autoload --optimize --no-dev && \
-    php bin/console cache:clear --env=prod && \
-    php bin/console cache:warmup --env=prod
+# Créer le fichier .env.local.php pour optimisation
+RUN composer dump-env prod || true
 
-# Créer les répertoires nécessaires et définir les permissions
-RUN mkdir -p /var/www/html/var/cache /var/www/html/var/log /var/www/html/public && \
-    chown -R www-data:www-data /var/www/html/var && \
-    chmod -R 775 /var/www/html/var
+# Générer l'autoloader optimisé
+RUN composer dump-autoload --optimize --no-dev --classmap-authoritative
+
+# Créer tous les répertoires nécessaires
+RUN mkdir -p \
+    /var/www/html/var/cache/prod \
+    /var/www/html/var/log \
+    /var/www/html/var/sessions \
+    /var/lib/nginx/tmp \
+    /var/lib/nginx/logs \
+    /var/log/nginx \
+    /var/log/supervisor \
+    /run/nginx
+
+# Créer les fichiers de log
+RUN touch \
+    /var/www/html/var/log/messenger.log \
+    /var/www/html/var/log/messenger_error.log \
+    /var/www/html/var/log/scheduler.log \
+    /var/www/html/var/log/scheduler_error.log
 
 # Configuration Nginx
 RUN cat > /etc/nginx/http.d/default.conf <<'EOF'
@@ -98,6 +111,7 @@ server {
         include fastcgi_params;
         fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
         fastcgi_param DOCUMENT_ROOT $realpath_root;
+        fastcgi_param APP_ENV prod;
         internal;
     }
 
@@ -110,25 +124,18 @@ server {
 }
 EOF
 
-# Configuration Supervisor avec Messenger et Scheduler
+# Copier le fichier supervisord.conf
 COPY Docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
-# Créer les fichiers de log et ajuster les permissions
-RUN mkdir -p /var/www/html/var/log \
-    /var/log/supervisor && \
-    touch /var/www/html/var/log/messenger.log \
-    /var/www/html/var/log/messenger_error.log \
-    /var/www/html/var/log/scheduler.log \
-    /var/www/html/var/log/scheduler_error.log && \
-    chown -R www-data:www-data /var/www/html/var/log /var/log/supervisor \
-
-# Créer les répertoires et donner les droits
-RUN mkdir -p /var/lib/nginx/tmp /var/lib/nginx/logs /var/log/nginx /var/run /var/log/supervisor \
-    && chown -R www-data:www-data /var/lib/nginx /var/log/nginx /var/run /var/log/supervisor /var/www/html \
-    && chmod -R 775 /var/lib/nginx /var/log/nginx /var/run /var/log/supervisor
-
-# Changer d'utilisateur après la configuration
-USER www-data
+# Ajuster les permissions
+RUN chown -R www-data:www-data \
+    /var/www/html/var \
+    /var/www/html/public \
+    /var/lib/nginx \
+    /var/log/nginx \
+    /var/log/supervisor \
+    /run/nginx && \
+    chmod -R 775 /var/www/html/var
 
 # Variables d'environnement
 ENV APP_ENV=prod
@@ -136,4 +143,5 @@ ENV APP_DEBUG=0
 
 EXPOSE 80
 
+# Lancer supervisor en tant que root
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
