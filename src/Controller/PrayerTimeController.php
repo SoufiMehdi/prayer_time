@@ -27,6 +27,8 @@ final class PrayerTimeController extends AbstractController
             'city' => $city,
             'country' => $country,
             'timing' => $timings,
+            'date' => $timings['date'],
+            'hijri' => $timings['hijri'],
             'nextPrayer' => $nextPrayer
         ]);
     }

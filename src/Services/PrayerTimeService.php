@@ -28,7 +28,8 @@ class PrayerTimeService
                     'country' => $country,
                     'method' => $methode
                 ]);
-                $response = $this->prayerApi->request('GET', '/timingsByCity', [
+                $now = new \DateTime();
+                $response = $this->prayerApi->request('GET', '/timingsByCity/'.$now->format('d-m-Y'), [
                     'query' => [
                         'city' => $city,
                         'country' => $country,
@@ -42,6 +43,7 @@ class PrayerTimeService
                 return [
                     'timings' => $this->formatTimings($data['data']['timings']),
                     'date' => $data['data']['date']['readable'] ?? date('d M Y'),
+                    'hijri' => $data['data']['date']['hijri'] ?? [],
                     'meta' => $data['data']['meta'] ?? []
                 ];
             });
