@@ -120,13 +120,14 @@ RUN mkdir -p /var/www/html/var/log \
     /var/www/html/var/log/messenger_error.log \
     /var/www/html/var/log/scheduler.log \
     /var/www/html/var/log/scheduler_error.log && \
-    chown -R www-data:www-data /var/www/html/var/log /var/log/supervisor
+    chown -R www-data:www-data /var/www/html/var/log /var/log/supervisor \
 
+# Créer les répertoires et donner les droits
 RUN mkdir -p /var/lib/nginx/tmp /var/lib/nginx/logs /var/log/nginx /var/run /var/log/supervisor \
     && chown -R www-data:www-data /var/lib/nginx /var/log/nginx /var/run /var/log/supervisor /var/www/html \
-    && chmod -R 775 /var/lib/nginx /var/log/nginx /var/run /var/log/supervisor \
+    && chmod -R 775 /var/lib/nginx /var/log/nginx /var/run /var/log/supervisor
 
-# Utilisateur non-root pour la sécurité
+# Changer d'utilisateur après la configuration
 USER www-data
 
 # Variables d'environnement
