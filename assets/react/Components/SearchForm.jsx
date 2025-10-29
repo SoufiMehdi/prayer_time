@@ -1,7 +1,8 @@
 import React from 'react';
-import { MapPin, Calendar } from 'lucide-react';
+import DateDisplay  from "./DateDisplay";
+import { MapPin } from 'lucide-react';
 
-const SearchForm = ({ city, country, onCityChange, onCountryChange, onSubmit, date, location }) => {
+const SearchForm = ({ city, country, onCityChange, onCountryChange, onSubmit, date, hijriData, location }) => {
     return (
         <div className="bg-white/10 backdrop-blur-md rounded-3xl shadow-2xl p-8 border border-white/20">
             <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
@@ -30,14 +31,11 @@ const SearchForm = ({ city, country, onCityChange, onCountryChange, onSubmit, da
                     Rechercher
                 </button>
             </form>
-            {date && location && (
-                <div className="mt-4 flex items-center gap-3 text-white/80">
-                    <Calendar className="w-5 h-5" />
-                    <span className="text-lg">{date}</span>
-                    <span className="mx-2">•</span>
-                    <span className="text-lg">{location}</span>
-                </div>
-            )}
+            <DateDisplay
+                gregorianDate={date}
+                hijriData={hijriData}
+                location={location}
+            />
         </div>
     );
 };
