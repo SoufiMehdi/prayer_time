@@ -114,11 +114,13 @@ EOF
 COPY Docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 # Créer les fichiers de log et ajuster les permissions
-RUN touch /var/www/html/var/log/messenger.log \
+RUN mkdir -p /var/www/html/var/log \
+    /var/log/supervisor && \
+    touch /var/www/html/var/log/messenger.log \
     /var/www/html/var/log/messenger_error.log \
     /var/www/html/var/log/scheduler.log \
     /var/www/html/var/log/scheduler_error.log && \
-    chown -R www-data:www-data /var/www/html/var/log
+    chown -R www-data:www-data /var/www/html/var/log /var/log/supervisor
 
 # Utilisateur non-root pour la sécurité
 USER www-data
