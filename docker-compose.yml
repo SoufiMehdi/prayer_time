@@ -7,16 +7,49 @@ services:
             dockerfile: Dockerfile
         container_name: prayer_time_app
         ports:
-            - "80"
+            - "8080:80"
         environment:
-            APP_ENV: prod
-            APP_SECRET: ${APP_SECRET:-changeme_secret_key_here}
+            - APP_ENV=prod
+            - APP_DEBUG=0
+            - DATABASE_URL=postgresql://msoufi:3hNRxw9CdudnkdH5cN2c@db:5432/prayer_time_db?serverVersion=16&charset=utf8
+            - MESSENGER_TRANSPORT_DSN=doctrine://default
         volumes:
-            - ./var/cache:/var/www/html/var/cache
             - ./var/log:/var/www/html/var/log
-        restart: unless-stopped
+            - ./var/cache:/var/www/html/var/cache
+        depends_on:
+            db:
+                condition: service_healthy
+        healthcheck:
+            test: ["CMD", "curl", "-f", "http://localhost"]
+            interval: 30s
+            timeout: 5s
+            retries: 3
         networks:
-            - proxy_net
+            - prayer_network
+        restart: unless-stopped
+
+    db:
+        image: postgres:16-alpine
+        container_name: prayer_time_db
+        environment:
+            POSTGRES_DB: prayer_time_db
+            POSTGRES_USER: msoufi
+            POSTGRES_PASSWORD: 3hNRxw9CdudnkdH5cN2c
+        volumes:
+            - db_data:/var/lib/postgresql/data
+        networks:
+            - prayer_network
+        healthcheck:
+            test: ["CMD-SHELL", "pg_isready -U msoufi -d prayer_time_db"]
+            interval: 10s
+            timeout: 5s
+            retries: 5
+        restart: unless-stopped
+
+volumes:
+    db_data:
+        driver: local
+
 networks:
-    proxy_net:
-        external: true
+    prayer_network:
+        driver: bridge

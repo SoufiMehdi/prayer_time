@@ -1,6 +1,5 @@
 # Étape 1 : Build des assets avec Node.js
 FROM node:18-alpine AS node_builder
-
 WORKDIR /app
 
 # Copier les fichiers de dépendances
@@ -29,16 +28,26 @@ RUN apk add --no-cache \
     nginx \
     supervisor \
     oniguruma-dev \
-    postgresql-dev  # <-- nécessaire pour pdo_pgsql
+    postgresql-dev \
+    bash \
+    curl
 
-# Installer les extensions PHP nécessaires (ajout de pgsql + pdo_pgsql)
+# Installer les extensions PHP nécessaires
 RUN docker-php-ext-install \
     intl \
     zip \
     opcache \
     mbstring \
     pdo_pgsql \
-    pgsql  # <-- ajout du support PostgreSQL
+    pgsql \
+    pcntl
+
+# Configuration PHP optimisée
+RUN echo "date.timezone = Europe/Paris" > /usr/local/etc/php/conf.d/timezone.ini && \
+    echo "memory_limit = 512M" > /usr/local/etc/php/conf.d/memory.ini && \
+    echo "opcache.enable=1" > /usr/local/etc/php/conf.d/opcache.ini && \
+    echo "opcache.memory_consumption=256" >> /usr/local/etc/php/conf.d/opcache.ini && \
+    echo "opcache.max_accelerated_files=20000" >> /usr/local/etc/php/conf.d/opcache.ini
 
 # Installer Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
@@ -59,69 +68,102 @@ RUN composer install --no-dev --no-scripts --no-autoloader --no-interaction --pr
 # Copier le reste des fichiers Symfony
 COPY . .
 
-# Copier les assets buildés depuis l’étape Node
+# Copier les assets buildés depuis l'étape Node
 COPY --from=node_builder /app/public/build ./public/build
 
-# Générer l’autoloader optimisé et exécuter les scripts
-RUN composer dump-autoload --optimize --no-dev
+# Générer l'autoloader optimisé et exécuter les scripts
+RUN composer dump-autoload --optimize --no-dev && \
+    php bin/console cache:clear --env=prod && \
+    php bin/console cache:warmup --env=prod
 
 # Créer les répertoires nécessaires et définir les permissions
 RUN mkdir -p /var/www/html/var/cache /var/www/html/var/log /var/www/html/public && \
-    chown -R www-data:www-data /var/www/html/var /var/www/html/public && \
+    chown -R www-data:www-data /var/www/html/var && \
     chmod -R 775 /var/www/html/var
 
 # Configuration Nginx
-COPY <<EOF /etc/nginx/http.d/default.conf
+RUN cat > /etc/nginx/http.d/default.conf <<'EOF'
 server {
     listen 80;
     server_name localhost;
     root /var/www/html/public;
 
     location / {
-        try_files \$uri /index.php\$is_args\$args;
+        try_files $uri /index.php$is_args$args;
     }
 
     location ~ ^/index\.php(/|$) {
         fastcgi_pass 127.0.0.1:9000;
         fastcgi_split_path_info ^(.+\.php)(/.*)$;
         include fastcgi_params;
-        fastcgi_param SCRIPT_FILENAME \$realpath_root\$fastcgi_script_name;
-        fastcgi_param DOCUMENT_ROOT \$realpath_root;
+        fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
+        fastcgi_param DOCUMENT_ROOT $realpath_root;
         internal;
     }
 
     location ~ \.php$ {
         return 404;
     }
+
+    error_log /var/log/nginx/error.log;
+    access_log /var/log/nginx/access.log;
 }
 EOF
 
-# Configuration Supervisor
-COPY <<EOF /etc/supervisor/conf.d/supervisord.conf
+# Configuration Supervisor avec Messenger et Scheduler
+RUN cat > /etc/supervisor/conf.d/supervisord.conf <<'EOF'
 [supervisord]
 nodaemon=true
 user=root
+logfile=/var/log/supervisor/supervisord.log
+pidfile=/var/run/supervisord.pid
 
 [program:php-fpm]
 command=php-fpm
 autostart=true
 autorestart=true
 stdout_logfile=/dev/stdout
-stdout_logfile_maxbytes=0
 stderr_logfile=/dev/stderr
-stderr_logfile_maxbytes=0
 
 [program:nginx]
 command=nginx -g 'daemon off;'
 autostart=true
 autorestart=true
 stdout_logfile=/dev/stdout
-stdout_logfile_maxbytes=0
 stderr_logfile=/dev/stderr
-stderr_logfile_maxbytes=0
+
+[program:messenger-consume]
+command=php /var/www/html/bin/console messenger:consume async --time-limit=3600 --memory-limit=256M
+process_name=%(program_name)s_%(process_num)02d
+numprocs=2
+autostart=true
+autorestart=true
+user=www-data
+stdout_logfile=/var/www/html/var/log/messenger.log
+stderr_logfile=/var/www/html/var/log/messenger_error.log
+
+[program:scheduler]
+command=php /var/www/html/bin/console scheduler:consume
+process_name=%(program_name)s
+numprocs=1
+autostart=true
+autorestart=true
+user=www-data
+stdout_logfile=/var/www/html/var/log/scheduler.log
+stderr_logfile=/var/www/html/var/log/scheduler_error.log
 EOF
 
-# Variables d'environnement par défaut
+# Créer les fichiers de log et ajuster les permissions
+RUN touch /var/www/html/var/log/messenger.log \
+    /var/www/html/var/log/messenger_error.log \
+    /var/www/html/var/log/scheduler.log \
+    /var/www/html/var/log/scheduler_error.log && \
+    chown -R www-data:www-data /var/www/html/var/log
+
+# Utilisateur non-root pour la sécurité
+USER www-data
+
+# Variables d'environnement
 ENV APP_ENV=prod
 ENV APP_DEBUG=0
 
