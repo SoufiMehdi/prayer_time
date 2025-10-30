@@ -3958,16 +3958,16 @@
         },
         {
             "name": "symfony/scheduler",
-            "version": "v7.3.3",
+            "version": "v7.3.5",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/scheduler.git",
-                "reference": "782fb9b77f1798e30c0d085aa084554ccc78de64"
+                "reference": "e44f8b0907fdfb6f5126c00ab02f0e08de9014d6"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/scheduler/zipball/782fb9b77f1798e30c0d085aa084554ccc78de64",
-                "reference": "782fb9b77f1798e30c0d085aa084554ccc78de64",
+                "url": "https://api.github.com/repos/symfony/scheduler/zipball/e44f8b0907fdfb6f5126c00ab02f0e08de9014d6",
+                "reference": "e44f8b0907fdfb6f5126c00ab02f0e08de9014d6",
                 "shasum": ""
             },
             "require": {
@@ -4019,7 +4019,7 @@
                 "scheduler"
             ],
             "support": {
-                "source": "https://github.com/symfony/scheduler/tree/v7.3.3"
+                "source": "https://github.com/symfony/scheduler/tree/v7.3.5"
             },
             "funding": [
                 {
@@ -4039,7 +4039,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2025-08-05T09:22:42+00:00"
+            "time": "2025-09-29T08:38:43+00:00"
         },
         {
             "name": "symfony/service-contracts",

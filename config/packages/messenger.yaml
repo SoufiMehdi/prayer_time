@@ -1,19 +1,19 @@
 framework:
     messenger:
-        # Uncomment this (and the failed transport below) to send failed messages to this transport for later handling.
-        # failure_transport: failed
+        failure_transport: failed
 
         transports:
-            scheduler_hijri_holidays: 'doctrine://default?queue_name=scheduler_hijri_holidays'
-            # https://symfony.com/doc/current/messenger.html#transport-configuration
-            # async: '%env(MESSENGER_TRANSPORT_DSN)%'
-            # failed: 'doctrine://default?queue_name=failed'
-            # sync: 'sync://'
+            scheduler_hijri_holidays:
+                dsn: 'doctrine://default?queue_name=scheduler_hijri_holidays'
+                options:
+                    auto_setup: true
+            failed: 'doctrine://default?queue_name=failed'
 
         routing:
             'App\Message\UpdateHijriHolidaysMessage': scheduler_hijri_holidays
-            # Route your messages to the transports
-            # 'App\Message\YourMessage': async
+
+    scheduler:
+        enabled: true
 
 # when@test:
 #    framework:
