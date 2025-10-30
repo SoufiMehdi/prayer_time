@@ -11,45 +11,20 @@ services:
         environment:
             - APP_ENV=prod
             - APP_DEBUG=0
-            - DATABASE_URL=postgresql://msoufi:3hNRxw9CdudnkdH5cN2c@db:5432/prayer_time_db?serverVersion=16&charset=utf8
+            - DATABASE_URL=postgresql://msoufi:3hNRxw9CdudnkdH5cN2c@symfony_postgres:5432/prayer_time_db?serverVersion=16&charset=utf8
             - MESSENGER_TRANSPORT_DSN=doctrine://default
         volumes:
             - ./var/log:/var/www/html/var/log
             - ./var/cache:/var/www/html/var/cache
-        depends_on:
-            db:
-                condition: service_healthy
         healthcheck:
             test: ["CMD", "curl", "-f", "http://localhost"]
             interval: 30s
             timeout: 5s
             retries: 3
         networks:
-            - prayer_network
+            - proxy_net
         restart: unless-stopped
-
-    db:
-        image: postgres:16-alpine
-        container_name: prayer_time_db
-        environment:
-            POSTGRES_DB: prayer_time_db
-            POSTGRES_USER: msoufi
-            POSTGRES_PASSWORD: 3hNRxw9CdudnkdH5cN2c
-        volumes:
-            - db_data:/var/lib/postgresql/data
-        networks:
-            - prayer_network
-        healthcheck:
-            test: ["CMD-SHELL", "pg_isready -U msoufi -d prayer_time_db"]
-            interval: 10s
-            timeout: 5s
-            retries: 5
-        restart: unless-stopped
-
-volumes:
-    db_data:
-        driver: local
 
 networks:
-    prayer_network:
-        driver: bridge
+    proxy_net:
+        external: true
