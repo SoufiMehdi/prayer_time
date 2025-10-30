@@ -70,9 +70,6 @@ COPY . .
 # Copier les assets buildés depuis l'étape Node
 COPY --from=node_builder /app/public/build ./public/build
 
-# Créer le fichier .env.local.php pour optimisation
-RUN composer dump-env prod || true
-
 # Générer l'autoloader optimisé
 RUN composer dump-autoload --optimize --no-dev --classmap-authoritative
 
@@ -111,7 +108,6 @@ server {
         include fastcgi_params;
         fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
         fastcgi_param DOCUMENT_ROOT $realpath_root;
-        fastcgi_param APP_ENV prod;
         internal;
     }
 
